@@ -9,9 +9,28 @@ import "./styles/App.css";
 import * as auth from '../utils/auth';
 
 function App() {
+  const [userData, setUserData] = useState({ username: "", email: "" });
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const navigate = useNavigate();
+
+  const handleLogin = ({ username, password }) => {
+    if (!username || !password) {
+      return;
+    }
+
+    auth
+      .authorize(username, password)
+      .then((data) => {
+        // Verify that a jwt is included before logging the user in.
+        if (data.jwt) {
+          setUserData(data.user);  // save user's data to state
+          setIsLoggedIn(true);    // log the user in
+          navigate("/ducks");    // send them to /ducks
+        }
+      })
+      .catch(console.error);
+  };
 
   const handleRegistration = ({
     username,
@@ -42,7 +61,7 @@ function App() {
         path="/my-profile" 
         element={
           <ProtectedRoute isLoggedIn={isLoggedIn}>
-            <MyProfile />
+            <MyProfile userData={userData} />
           </ProtectedRoute>
         } 
       />
@@ -50,7 +69,7 @@ function App() {
         path="/login"
         element={
           <div className="loginContainer">
-            <Login />
+            <Login handleLogin={handleLogin} />
           </div>
         }
       />
